@@ -7,4 +7,3 @@ def initButton(pin):
 
 def readButton(pin):
 	return digitalRead(pin)
-	

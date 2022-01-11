@@ -22,6 +22,44 @@ def cleanAndExit():
     sys.exit()
 
 
+# Make an average of x weights and return it.
+def getAverageWeight():
+    hx = HX711(17, 27)
+    hx.set_reading_format("MSB", "MSB")
+    hx.set_reference_unit(14)
+
+    hx.reset()
+    hx.tare()
+
+    # to use both channels, you'll need to tare them both
+    hx.tare_A()
+    hx.tare_B()
+
+    i = 0
+    iMax = 5
+    sum = 0
+
+    while True:
+        try:
+            val = hx.get_weight(5)
+            # print(val)
+
+            hx.power_down()
+            hx.power_up()
+            # time.sleep(0.01)
+
+            if i == iMax:
+                # print("Avg : %s" % (sum / i))
+
+                return sum / i
+            else:
+                i += 1
+                sum += val
+
+        except (KeyboardInterrupt, SystemExit):
+            cleanAndExit()
+
+
 def getWeight():
     hx = HX711(17, 27)
 

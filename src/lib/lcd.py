@@ -75,14 +75,16 @@ def setChar(char):
 # Completez le code de la fonction permettant d'ecrire le texte recu en parametre
 # Si le texte contient un \n ou plus de 16 caracteres pensez a gerer
 # le retour a la ligne
-# def setText16(texte):
-#     clearText()
-#
-#     for i in range(len(texte)):
-#         if i == 16 or texte[i] == '\n':
-#             textCmd(0xc0)
-#         # time.sleep(0.05)
-#         setChar(texte[i])
+def setTextFix(texte):
+    clearText()
+    # setLine(getAsciiText(texte))
+    texte = getAsciiText(texte)
+
+    for i in range(len(texte)):
+        if i == 16 or texte[i] == '\n':
+            textCmd(0xc0)
+        # time.sleep(0.05)
+        setChar(texte[i])
 
 
 # Affiche une ligne de 16 caractères maximum.
@@ -121,9 +123,9 @@ def setText(text):
 
         newText = getAsciiText(newText)
 
-        print('old : ' + oldText)
-        print('new : ' + newText)
-        print('\n')
+        # print('old : ' + oldText)
+        # print('new : ' + newText)
+        # print('\n')
 
         setLine(oldText)
         lineBreak()
