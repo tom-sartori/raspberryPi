@@ -15,7 +15,7 @@ pinRightButton = 4
 
 pinLed = 5
 
-pinRelay = 6
+pinRelay = 4
 
 
 def init():
@@ -26,6 +26,7 @@ def init():
     initLED(pinLed)
 
     initRelay(pinRelay)
+    offRelay(pinRelay)
 
     offLED(pinLed)
 
@@ -34,6 +35,8 @@ def init():
 
     # lcd no need
 
+isTimedMode = True  # If True, use timer and not the weighing machine.
+print("isTimedMode : ", isTimedMode)
 
 def lcdMenu(tabOption):
     # The person has just pressed to come on this menu. So, we wait her to un press.
@@ -74,10 +77,26 @@ def addCereal(quantity):
     # Init servo
     turnServo(servo, 50 / 20)
     time.sleep(2)
-    turnServo(servo, 11)    # Open servo
+    turnServo(servo, 12)    # Open servo
+    time.sleep(2)
 
-    while getAverageWeight() < startWeight + quantity and readButton(pinMiddleButton) == 0:
-        a = 0
+    if isTimedMode:
+        timer = quantity * 100000000 / 3
+        currentTime = time.time_ns()
+
+        while currentTime + timer > time.time_ns():
+            # Need to move the servo to make falling the cereals.
+            turnServo(servo, 6.5)
+            time.sleep(0.2)
+            turnServo(servo, 9)
+            time.sleep(0.2)
+    else:
+        while getAverageWeight() < startWeight + quantity and readButton(pinMiddleButton) == 0:
+            # Need to move the servo to make falling the cereals.
+            turnServo(servo, 6.5)
+            time.sleep(0.2)
+            turnServo(servo, 9)
+            time.sleep(0.2)
 
     turnServo(servo, 50 / 20)   # Close servo
     time.sleep(2)
@@ -111,8 +130,13 @@ def addMilk(quantity):
         startWeight = getAverageWeight()
         onRelay(pinRelay)
         print("On relay. ")
-        while getAverageWeight() < startWeight + quantity and readButton(pinMiddleButton) == 0:
-            a = 0
+
+        if isTimedMode:
+            time.sleep(quantity/30)
+        else:
+            while getAverageWeight() < startWeight + quantity and readButton(pinMiddleButton) == 0:
+                a = 0
+
         offRelay(pinRelay)
         print("Off relay. ")
 
@@ -153,7 +177,7 @@ def run():
     # lcd :
     setRGB(0, 128, 64)
     print("Bonjour ! ")
-    setTextDefile("Boujour ! ")
+    setTextDefile("Bonjour ! ")
     time.sleep(1)
 
     # As usual option
@@ -163,8 +187,8 @@ def run():
     print("Comme d'habitude : ", isUsualOption)
 
     if isUsualOption:
-        milkQuantity = 80
-        cerealQuantity = 150
+        milkQuantity = 150
+        cerealQuantity = 200
 
     else:   # Manual parameter fixed by the user.
 
@@ -203,11 +227,11 @@ def run():
             cerealMixChoixe = lcdMenu(cerealMixMenuOption)
 
             if cerealMixChoixe == 0:
-                cerealQuantity = 50
-            elif cerealMixChoixe == 1:
                 cerealQuantity = 100
+            elif cerealMixChoixe == 1:
+                cerealQuantity = 150
             elif cerealMixChoixe == 2:
-                cerealQuantity = 200
+                cerealQuantity = 250
 
     print("milkQuantity : ", milkQuantity)
     print("cerealQuantity : ", cerealQuantity)
@@ -220,13 +244,35 @@ def run():
         time.sleep(1)
     if milkQuantity != 0:
         addMilk(milkQuantity)
+
+    time.sleep(1)
     offLED(pinLed)
 
     # Dweet
     sendToDweet(cerealQuantity, milkQuantity)
 
     # End
-    setText("Vous pouvez récupérer votre bol. ")
+    setTextDefile("Vous pouvez récupérer votre bol. ")
     print("Done. ")
 
+
+    # Restart
+    restartMenuOption = ["Recommencer", "Quitter"]
+    isRestartOption = lcdMenu(restartMenuOption) == 0
+    print("Restart : ", isRestartOption)
+    if isRestartOption:
+        run()
+    clearText()
+
+
 run()
+
+# servo = initServo()
+# turnServo(servo, 50 / 20)  # Close servo
+# time.sleep(2)
+
+#
+# initRelay(pinRelay)
+# onRelay(pinRelay)
+# time.sleep(3)
+# offRelay(pinRelay)
